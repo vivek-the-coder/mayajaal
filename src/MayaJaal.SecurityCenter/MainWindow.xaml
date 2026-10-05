@@ -1,0 +1,852 @@
+<Window x:Class="MayaJaal.SecurityCenter.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:MayaJaal.SecurityCenter.Converters"
+        Title="MayaJaal Security Center"
+        Height="920" Width="1400"
+        MinHeight="720" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="{StaticResource AppFont}">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:InverseBooleanToVisibilityConverter x:Key="BoolToVisInverse"/>
+        <conv:InverseBooleanConverter x:Key="NotBool"/>
+        <conv:NonEmptyStringToVisibilityConverter x:Key="NonEmptyToVis"/>
+        <conv:StringToBrushConverter x:Key="ToBrush"/>
+        <conv:StringToGeometryConverter x:Key="ToGeom"/>
+
+        <Style x:Key="NavItem" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Tag}" Value="Active">
+                    <Setter Property="Background" Value="{StaticResource BgMuted}"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource BgPrimary}"
+            BorderBrush="{StaticResource BorderColor}" BorderThickness="1"
+            CornerRadius="10">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="248"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- SIDEBAR -->
+            <Border Grid.Column="0" Style="{StaticResource SidebarPanel}">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Padding="20,18,16,14"
+                            MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="28" Height="28" CornerRadius="6" Background="{StaticResource Primary}" Margin="0,0,10,0">
+                                <TextBlock Text="M" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource PrimaryForeground}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="MayaJaal" FontSize="14" FontWeight="SemiBold"/>
+                                <TextBlock Text="Security Center" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="16,14">
+                        <StackPanel>
+                            <TextBlock Text="{Binding UserDisplayName}" FontSize="13" FontWeight="Medium"/>
+                            <TextBlock Text="{Binding SystemInfo}" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding UptimeText, StringFormat=Uptime {0}}" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" Margin="0,2,0,10"/>
+                            <TextBlock Text="{Binding NextActionText}" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                            <Button Content="Unlock vault" Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding UnlockVaultCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+                            <Button Content="Add file to vault" Style="{StaticResource GhostButton}"
+                                    Command="{Binding AddVaultFileCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,8"/>
+                            <Button Content="Lock all vaults" Style="{StaticResource DangerButton}"
+                                    Command="{Binding LockVaultCommand}" HorizontalAlignment="Stretch"/>
+                            <TextBlock Text="{Binding VaultStatus}" FontSize="11"
+                                       Foreground="{StaticResource TextMuted}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,4,0,8">
+                        <StackPanel>
+                            <TextBlock Text="Platform" Style="{StaticResource MenuSectionLabel}"/>
+                            <Button Content="Dashboard" Command="{Binding NavigateCommand}" CommandParameter="Dashboard"
+                                    Style="{StaticResource NavItem}" Tag="{Binding DashboardNavTag}"/>
+                            <Button Content="Incidents" Command="{Binding NavigateCommand}" CommandParameter="Incidents"
+                                    Style="{StaticResource NavItem}" Tag="{Binding IncidentsNavTag}"/>
+                            <Button Content="Vault" Command="{Binding NavigateCommand}" CommandParameter="Vault"
+                                    Style="{StaticResource NavItem}" Tag="{Binding VaultNavTag}"/>
+                            <Button Content="Policies" Command="{Binding NavigateCommand}" CommandParameter="Policies"
+                                    Style="{StaticResource NavItem}" Tag="{Binding PoliciesNavTag}"/>
+                            <Button Content="Detections" Command="{Binding NavigateCommand}" CommandParameter="Detections"
+                                    Style="{StaticResource NavItem}" Tag="{Binding DetectionsNavTag}"/>
+                            <Button Content="Attack Lab" Command="{Binding NavigateCommand}" CommandParameter="AttackLab"
+                                    Style="{StaticResource NavItem}" Tag="{Binding AttackLabNavTag}"/>
+
+                            <TextBlock Text="System" Style="{StaticResource MenuSectionLabel}"/>
+                            <Button Content="Settings" Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                                    Style="{StaticResource NavItem}" Tag="{Binding SettingsNavTag}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- MAIN -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="56"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- TOP BAR -->
+                <Border Grid.Row="0" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1"
+                        Background="{StaticResource BgPrimary}" Padding="24,0"
+                        MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding BreadcrumbTrail}" FontSize="13"
+                                       Foreground="{StaticResource TextMuted}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Border Style="{StaticResource Badge}" Margin="0,0,10,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
+                                             Fill="{Binding ConnectionBrush, Converter={StaticResource ToBrush}}"/>
+                                    <TextBlock Text="{Binding ConnectionStatus}" FontSize="11" FontWeight="Medium"
+                                               Foreground="{StaticResource TextSecondary}"/>
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Text="{Binding ClockText}" FontSize="12" Foreground="{StaticResource TextMuted}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <Button Content="Refresh" Style="{StaticResource GhostButton}" Padding="12,6"
+                                    Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+                            <Button Content="—" Style="{StaticResource ChromeIconButton}" Click="Minimize_Click"/>
+                            <Button Content="✕" Style="{StaticResource ChromeIconButton}" Click="Close_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="1" Margin="24,20,24,20">
+                    <!-- DASHBOARD -->
+                    <ScrollViewer Visibility="{Binding IsDashboardVisible, Converter={StaticResource BoolToVis}}"
+                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1"
+                                    CornerRadius="8" Padding="14,12" Margin="0,0,0,16"
+                                    Visibility="{Binding IsOffline, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Guardian offline — start MayaJaal.Guardian with --console, then click Refresh."
+                                           Foreground="#B91C1C" FontSize="13" TextWrapping="Wrap"/>
+                            </Border>
+
+                            <Border Background="#F4F4F5" BorderBrush="{StaticResource BorderColor}" BorderThickness="1"
+                                    CornerRadius="8" Padding="14,12" Margin="0,0,0,16"
+                                    Visibility="{Binding ShowGettingStarted, Converter={StaticResource BoolToVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="Getting started" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{Binding GettingStartedText}" FontSize="13"
+                                               Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <Button Content="Open Vault" Style="{StaticResource PrimaryButton}" Padding="12,6" Margin="0,0,8,0"
+                                                Command="{Binding NavigateCommand}" CommandParameter="Vault"/>
+                                        <Button Content="Attack Lab" Style="{StaticResource GhostButton}" Padding="12,6"
+                                                Command="{Binding NavigateCommand}" CommandParameter="AttackLab"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <DockPanel Margin="0,0,0,20" LastChildFill="False">
+                                <StackPanel>
+                                    <TextBlock Text="Dashboard" Style="{StaticResource PageTitle}"/>
+                                    <TextBlock Text="Live numbers only — no demo filler data." Style="{StaticResource PageDescription}"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+                                    <Border Style="{StaticResource Badge}" Margin="0,0,8,0">
+                                        <TextBlock Text="{Binding ThreatLevelText, StringFormat=Level · {0}}" FontSize="11"
+                                                   Foreground="{Binding ThreatLevelBrush, Converter={StaticResource ToBrush}}"/>
+                                    </Border>
+                                    <Border Style="{StaticResource Badge}">
+                                        <TextBlock Text="{Binding RiskScoreText, StringFormat=Risk · {0}}" FontSize="11"
+                                                   Foreground="{StaticResource TextSecondary}"/>
+                                    </Border>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <!-- KPI -->
+                            <ItemsControl ItemsSource="{Binding Kpis}" Margin="0,0,0,16">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="4"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="Margin" Value="0,0,12,0"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource KpiCard}">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Label}" Style="{StaticResource MetricLabel}"/>
+                                                <TextBlock Text="{Binding Value}" FontSize="28" FontWeight="SemiBold" Margin="0,10,0,0"
+                                                           Foreground="{StaticResource TextPrimary}"/>
+                                                <TextBlock Text="{Binding Trend}" FontSize="11" Margin="0,8,0,0"
+                                                           Foreground="{Binding TrendBrush, Converter={StaticResource ToBrush}}"
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Metrics strip -->
+                            <Border Style="{StaticResource GlassCard}" Padding="18,16" Margin="0,0,0,16">
+                                <UniformGrid Columns="4">
+                                    <StackPanel Margin="0,0,12,0">
+                                        <TextBlock Text="Threat level" Style="{StaticResource MetricLabel}"/>
+                                        <TextBlock Text="{Binding ThreatLevelText}" FontSize="18" FontWeight="SemiBold" Margin="0,6,0,0"
+                                                   Foreground="{Binding ThreatLevelBrush, Converter={StaticResource ToBrush}}"/>
+                                        <TextBlock Text="{Binding ThreatSubText}" FontSize="12"
+                                                   Foreground="{StaticResource TextMuted}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,12,0">
+                                        <TextBlock Text="Risk score" Style="{StaticResource MetricLabel}"/>
+                                        <TextBlock Text="{Binding RiskScoreText}" FontSize="18" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                                        <ProgressBar Height="6" Minimum="0" Maximum="200" Value="{Binding RiskBarValue}"
+                                                     Margin="0,10,16,0" Foreground="{StaticResource Primary}" Background="{StaticResource ChartTrack}" BorderThickness="0"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,12,0">
+                                        <TextBlock Text="Confidence" Style="{StaticResource MetricLabel}"/>
+                                        <TextBlock Text="{Binding ConfidenceText}" FontSize="18" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                                        <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding ConfidenceBarValue}"
+                                                     Margin="0,10,16,0" Foreground="{StaticResource Primary}" Background="{StaticResource ChartTrack}" BorderThickness="0"/>
+                                    </StackPanel>
+                                    <StackPanel>
+                                        <TextBlock Text="Active incidents" Style="{StaticResource MetricLabel}"/>
+                                        <TextBlock Text="{Binding ActiveIncidentsText}" FontSize="18" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                                        <TextBlock Text="{Binding IncidentSummaryText}" FontSize="12"
+                                                   Foreground="{StaticResource TextMuted}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </UniformGrid>
+                            </Border>
+
+                            <!-- Charts row -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Style="{StaticResource GlassCard}" Padding="18">
+                                    <DockPanel>
+                                        <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="Signal mix" Style="{StaticResource SectionTitle}"/>
+                                                <TextBlock Text="Real counts from the current Guardian window (0 when idle)." FontSize="12"
+                                                           Foreground="{StaticResource TextMuted}"/>
+                                            </StackPanel>
+                                            <Button Content="View all" Style="{StaticResource LinkButton}"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                    Command="{Binding NavigateCommand}" CommandParameter="Detections"/>
+                                        </Grid>
+                                        <ItemsControl ItemsSource="{Binding AlertBars}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0,0,0,14">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="96"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="36"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Category}" FontSize="12"
+                                                                   Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                                        <Border Grid.Column="1" Height="8" CornerRadius="4"
+                                                                Background="{StaticResource ChartTrack}"
+                                                                VerticalAlignment="Center" Margin="0,0,10,0">
+                                                            <Border Width="{Binding BarWidth}" Height="8" CornerRadius="4"
+                                                                    HorizontalAlignment="Left"
+                                                                    Background="{Binding BarBrush, Converter={StaticResource ToBrush}}"/>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="2" Text="{Binding ValueText}" FontSize="12" FontWeight="Medium"
+                                                                   Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </DockPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Style="{StaticResource GlassCard}" Padding="18">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                                            <TextBlock Text="Window health" Style="{StaticResource SectionTitle}"/>
+                                            <TextBlock Text="Issues vs quiet vs contained — from live events only." FontSize="12"
+                                                       Foreground="{StaticResource TextMuted}"/>
+                                        </StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid Width="148" Height="148" Margin="0,4,16,0">
+                                                <Path Data="{Binding DonutIssuesPath, Converter={StaticResource ToGeom}}" Fill="{StaticResource Destructive}"/>
+                                                <Path Data="{Binding DonutGoodPath, Converter={StaticResource ToGeom}}" Fill="{StaticResource Success}"/>
+                                                <Path Data="{Binding DonutSnoozedPath, Converter={StaticResource ToGeom}}" Fill="{StaticResource Warning}"/>
+                                                <Ellipse Width="68" Height="68" Fill="{StaticResource BgCard}"
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding DonutCenterLabel}" FontSize="16" FontWeight="SemiBold"
+                                                               HorizontalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DonutCenterSub}" FontSize="10"
+                                                               Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                                    <Border Width="10" Height="10" CornerRadius="2" Background="{StaticResource Destructive}" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="Issues" Foreground="{StaticResource TextMuted}" FontSize="12" Width="84"/>
+                                                    <TextBlock Text="{Binding HealthIssuesPctText}" FontSize="12" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                                    <Border Width="10" Height="10" CornerRadius="2" Background="{StaticResource Success}" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="Healthy" Foreground="{StaticResource TextMuted}" FontSize="12" Width="84"/>
+                                                    <TextBlock Text="{Binding HealthGoodPctText}" FontSize="12" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="10" Height="10" CornerRadius="2" Background="{StaticResource Warning}" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="Contained" Foreground="{StaticResource TextMuted}" FontSize="12" Width="84"/>
+                                                    <TextBlock Text="{Binding HealthSnoozedPctText}" FontSize="12" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DockPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Monthly volume -->
+                            <Border Style="{StaticResource GlassCard}" Padding="18" Margin="0,0,0,16">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                                        <TextBlock Text="Activity by hour (live window)" Style="{StaticResource SectionTitle}"/>
+                                        <TextBlock Text="Event counts by local hour — empty bars mean no events yet." FontSize="12"
+                                                   Foreground="{StaticResource TextMuted}"/>
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding MonthBars}" Height="140">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Columns="12" Rows="1"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                                    <StackPanel Orientation="Horizontal" Height="110" VerticalAlignment="Bottom">
+                                                        <Border Width="8" Height="{Binding PrimaryHeight}" CornerRadius="3,3,0,0"
+                                                                Background="{StaticResource ChartPrimary}" VerticalAlignment="Bottom" Margin="0,0,2,0"/>
+                                                        <Border Width="8" Height="{Binding SecondaryHeight}" CornerRadius="3,3,0,0"
+                                                                Background="{StaticResource ChartSecondary}" VerticalAlignment="Bottom"/>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Month}" FontSize="10" Foreground="{StaticResource TextMuted}"
+                                                               HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
+                            </Border>
+
+                            <!-- Active incident -->
+                            <Border Style="{StaticResource CardGlow}" Padding="18" Margin="0,0,0,16"
+                                    Visibility="{Binding HasActiveIncident, Converter={StaticResource BoolToVis}}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,14">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Active incident" FontSize="14" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                                            <Border Style="{StaticResource Badge}">
+                                                <TextBlock Text="{Binding IncidentNumber}" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                            </Border>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <TextBlock Text="{Binding IncidentStatus}" FontWeight="Medium" FontSize="12" Margin="0,0,12,0"
+                                                       Foreground="{Binding IncidentStatusBrush, Converter={StaticResource ToBrush}}"
+                                                       VerticalAlignment="Center"/>
+                                            <Button Content="Lock vault" Style="{StaticResource DangerButton}" Padding="12,6"
+                                                    Command="{Binding LockVaultCommand}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <UniformGrid Columns="4" Margin="0,0,0,12">
+                                        <StackPanel>
+                                            <TextBlock Text="Severity" Style="{StaticResource MetricLabel}"/>
+                                            <TextBlock Text="{Binding ThreatLevelText}" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,0"
+                                                       Foreground="{Binding ThreatLevelBrush, Converter={StaticResource ToBrush}}"/>
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="Response" Style="{StaticResource MetricLabel}"/>
+                                            <TextBlock Text="{Binding IncidentAction}" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="Risk / confidence" Style="{StaticResource MetricLabel}"/>
+                                            <TextBlock Text="{Binding IncidentRisk}" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="Started" Style="{StaticResource MetricLabel}"/>
+                                            <TextBlock Text="{Binding IncidentStarted}" FontSize="14" Margin="0,4,0,0"
+                                                       Foreground="{StaticResource TextSecondary}"/>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                    <TextBlock Text="{Binding IncidentTimelineText}" FontSize="12"
+                                               Foreground="{StaticResource TextMuted}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Events table -->
+                            <Border Style="{StaticResource GlassCard}" Padding="0" Margin="0,0,0,16">
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Top" Padding="18,14" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1">
+                                        <StackPanel>
+                                            <TextBlock Text="Recent events" Style="{StaticResource SectionTitle}"/>
+                                            <TextBlock Text="Latest signals from the Guardian threat window." FontSize="12"
+                                                       Foreground="{StaticResource TextMuted}"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border DockPanel.Dock="Top" Padding="18,8" Background="{StaticResource BgMuted}"
+                                            BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="72"/>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="90"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="56"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Time" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextMuted}"/>
+                                            <TextBlock Grid.Column="1" Text="Type" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextMuted}"/>
+                                            <TextBlock Grid.Column="2" Text="Severity" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextMuted}"/>
+                                            <TextBlock Grid.Column="3" Text="Path" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextMuted}"/>
+                                            <TextBlock Grid.Column="4" Text="Risk" FontSize="11" FontWeight="Medium" Foreground="{StaticResource TextMuted}"
+                                                       HorizontalAlignment="Right"/>
+                                        </Grid>
+                                    </Border>
+                                    <ListView ItemsSource="{Binding Events}" Style="{StaticResource QuietListView}" MaxHeight="320">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Padding="18,10" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="72"/>
+                                                            <ColumnDefinition Width="150"/>
+                                                            <ColumnDefinition Width="90"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="56"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Time}" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Type}" FontSize="12" FontWeight="Medium"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Severity}" FontSize="12"
+                                                                   Foreground="{Binding SeverityBrush, Converter={StaticResource ToBrush}}"/>
+                                                        <TextBlock Grid.Column="3" Text="{Binding Path}" FontSize="12"
+                                                                   Foreground="{StaticResource TextMuted}" TextTrimming="CharacterEllipsis" Margin="0,0,12,0"/>
+                                                        <TextBlock Grid.Column="4" Text="{Binding Risk}" FontSize="12" FontWeight="Medium"
+                                                                   HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </DockPanel>
+                            </Border>
+
+                            <!-- Status footer -->
+                            <Border Style="{StaticResource GlassCard}" Padding="14,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding HealthText}" FontWeight="Medium" FontSize="12"
+                                               Foreground="{Binding HealthBrush, Converter={StaticResource ToBrush}}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding StatusBarText}" FontSize="12"
+                                               Foreground="{StaticResource TextMuted}" Margin="14,0"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding LastUpdatedText, StringFormat=Updated {0}}"
+                                               FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- INCIDENTS -->
+                    <DockPanel Visibility="{Binding IsIncidentsVisible, Converter={StaticResource BoolToVis}}">
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                            <TextBlock Text="Incidents" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="Open and recent cases from IncidentService." Style="{StaticResource PageDescription}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource GlassCard}" Padding="16">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top"
+                                           Text="No incidents yet. Run Guardian with --simulate or --demo to generate activity."
+                                           Foreground="{StaticResource TextMuted}" FontSize="13" Margin="4,8"
+                                           Visibility="{Binding HasIncidents, Converter={StaticResource BoolToVisInverse}}"/>
+                                <ListView ItemsSource="{Binding Incidents}" Style="{StaticResource QuietListView}"
+                                          Visibility="{Binding HasIncidents, Converter={StaticResource BoolToVis}}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource GlassCard}" Padding="16,14" Margin="0,0,0,10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Number}" FontWeight="SemiBold" FontSize="14"/>
+                                                            <Border Style="{StaticResource Badge}" Margin="10,0,0,0">
+                                                                <TextBlock Text="{Binding Level}" FontSize="11"
+                                                                           Foreground="{Binding LevelBrush, Converter={StaticResource ToBrush}}"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock FontSize="12" Foreground="{StaticResource TextMuted}" Margin="0,6,0,0">
+                                                            <Run Text="{Binding Status}"/>
+                                                            <Run Text=" · risk "/>
+                                                            <Run Text="{Binding Risk}"/>
+                                                            <Run Text=" · "/>
+                                                            <Run Text="{Binding Started}"/>
+                                                        </TextBlock>
+                                                        <TextBlock Text="{Binding Signal}" FontSize="12"
+                                                                   Foreground="{StaticResource TextSecondary}"
+                                                                   TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Content="Resolve" Style="{StaticResource GhostButton}" Padding="12,6" Margin="0,0,8,0"
+                                                                Command="{Binding DataContext.ResolveIncidentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding Id}"/>
+                                                        <Button Content="Rollback" Style="{StaticResource PrimaryButton}" Padding="12,6"
+                                                                Command="{Binding DataContext.RollbackIncidentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding Id}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </DockPanel>
+                        </Border>
+                    </DockPanel>
+
+                    <!-- VAULT -->
+                    <ScrollViewer Visibility="{Binding IsVaultVisible, Converter={StaticResource BoolToVis}}"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,16" LastChildFill="False">
+                                <StackPanel>
+                                    <TextBlock Text="Vault" Style="{StaticResource PageTitle}"/>
+                                    <TextBlock Text="Unlock → Add file → files are encrypted into the Guardian vault."
+                                               Style="{StaticResource PageDescription}"/>
+                                </StackPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+                                    <Button Content="Unlock vault" Style="{StaticResource PrimaryButton}" Padding="14,8" Margin="0,0,8,0"
+                                            Command="{Binding UnlockVaultCommand}"/>
+                                    <Button Content="Add file…" Style="{StaticResource PrimaryButton}" Padding="14,8" Margin="0,0,8,0"
+                                            Command="{Binding AddVaultFileCommand}"/>
+                                    <Button Content="Lock all" Style="{StaticResource DangerButton}" Padding="14,8"
+                                            Command="{Binding LockVaultCommand}"/>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <Border Style="{StaticResource GlassCard}" Padding="16" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="How to use" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                                    <TextBlock FontSize="13" Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap"
+                                               Text="1. Click Unlock vault (creates Default Vault if needed).  2. Click Add file… and pick any document.  3. The encrypted copy appears in Files below.  4. Lock all vaults during a threat demo."/>
+                                    <TextBlock Text="{Binding VaultStatus}" FontSize="12" Margin="0,10,0,0"
+                                               Foreground="{StaticResource TextMuted}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource GlassCard}" Padding="16" Margin="0,0,0,16">
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Top" Text="Vaults" Style="{StaticResource SectionTitle}" Margin="0,0,0,10"/>
+                                    <TextBlock DockPanel.Dock="Top"
+                                               Text="No vault yet. Click Unlock vault — Guardian creates and unlocks Default Vault."
+                                               Foreground="{StaticResource TextMuted}" FontSize="13" Margin="0,0,0,8"
+                                               Visibility="{Binding HasVaults, Converter={StaticResource BoolToVisInverse}}"/>
+                                    <ListView ItemsSource="{Binding VaultRows}" Style="{StaticResource QuietListView}"
+                                              Visibility="{Binding HasVaults, Converter={StaticResource BoolToVis}}">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource GlassCard}" Padding="16,14" Margin="0,0,0,10">
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding Id}" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                                                        <TextBlock FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,8,0,0">
+                                                            <Run Text="{Binding State}"/>
+                                                            <Run Text=" · Items "/>
+                                                            <Run Text="{Binding ItemCount}"/>
+                                                            <Run Text=" · "/>
+                                                            <Run Text="{Binding TotalSize}"/>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </DockPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource GlassCard}" Padding="16">
+                                <DockPanel>
+                                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" LastChildFill="False">
+                                        <TextBlock Text="Files in vault" Style="{StaticResource SectionTitle}"/>
+                                        <Button DockPanel.Dock="Right" Content="Add file…" Style="{StaticResource GhostButton}" Padding="12,6"
+                                                Command="{Binding AddVaultFileCommand}"/>
+                                    </DockPanel>
+                                    <TextBlock DockPanel.Dock="Top"
+                                               Text="No files yet. Click Add file… to encrypt a document into the vault."
+                                               Foreground="{StaticResource TextMuted}" FontSize="13" Margin="0,0,0,8"
+                                               Visibility="{Binding HasVaultItems, Converter={StaticResource BoolToVisInverse}}"/>
+                                    <ListView ItemsSource="{Binding VaultItemRows}" Style="{StaticResource QuietListView}"
+                                              Visibility="{Binding HasVaultItems, Converter={StaticResource BoolToVis}}">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Padding="0,10" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,0,0,1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="90"/>
+                                                            <ColumnDefinition Width="140"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"/>
+                                                            <TextBlock Text="{Binding OriginalPath}" FontSize="11"
+                                                                       Foreground="{StaticResource TextMuted}" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Size}" FontSize="12"
+                                                                   VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding AddedAt}" FontSize="12"
+                                                                   VerticalAlignment="Center" HorizontalAlignment="Right"
+                                                                   Foreground="{StaticResource TextMuted}"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- POLICIES -->
+                    <DockPanel Visibility="{Binding IsPoliciesVisible, Converter={StaticResource BoolToVis}}">
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                            <TextBlock Text="Policies" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="Default defense policy exposed by PolicyEngine." Style="{StaticResource PageDescription}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource GlassCard}" Padding="16">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Policies unavailable — Guardian may be offline."
+                                           Foreground="{StaticResource TextMuted}" FontSize="13" Margin="4,8"
+                                           Visibility="{Binding HasPolicies, Converter={StaticResource BoolToVisInverse}}"/>
+                                <ListView ItemsSource="{Binding PolicyRows}" Style="{StaticResource QuietListView}"
+                                          Visibility="{Binding HasPolicies, Converter={StaticResource BoolToVis}}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource GlassCard}" Padding="16,14" Margin="0,0,0,10">
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                                                        <Border Style="{StaticResource Badge}" Margin="10,0,0,0">
+                                                            <TextBlock Text="{Binding Enabled}" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Description}" FontSize="12"
+                                                               Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                                    <TextBlock FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,8,0,0">
+                                                        <Run Text="Default action · "/>
+                                                        <Run Text="{Binding DefaultAction}"/>
+                                                        <Run Text=" · v"/>
+                                                        <Run Text="{Binding Version}"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </DockPanel>
+                        </Border>
+                    </DockPanel>
+
+                    <!-- DETECTIONS -->
+                    <DockPanel Visibility="{Binding IsDetectionsVisible, Converter={StaticResource BoolToVis}}">
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                            <TextBlock Text="Detections" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="Live signal counts only — empty when the window has no events." Style="{StaticResource PageDescription}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource GlassCard}" Padding="20">
+                            <ItemsControl ItemsSource="{Binding AlertBars}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,14">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="48"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Category}" Foreground="{StaticResource TextSecondary}"
+                                                       VerticalAlignment="Center" FontSize="13"/>
+                                            <Border Grid.Column="1" Height="10" CornerRadius="5"
+                                                    Background="{StaticResource ChartTrack}" Margin="10,0">
+                                                <Border HorizontalAlignment="Left" Height="10" CornerRadius="5"
+                                                        Width="{Binding BarWidth}"
+                                                        Background="{Binding BarBrush, Converter={StaticResource ToBrush}}"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="2" Text="{Binding ValueText}"
+                                                       Foreground="{StaticResource TextMuted}" FontSize="12"
+                                                       VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </DockPanel>
+
+                    <!-- ATTACK LAB -->
+                    <ScrollViewer Visibility="{Binding IsAttackLabVisible, Converter={StaticResource BoolToVis}}"
+                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,16" LastChildFill="False">
+                                <StackPanel>
+                                    <TextBlock Text="Attack Lab" Style="{StaticResource PageTitle}"/>
+                                    <TextBlock Text="Faculty demo — show how an attacker acts and how MayaJaal responds."
+                                               Style="{StaticResource PageDescription}"/>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Style="{StaticResource GlassCard}" Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="1. Choose attacker scenario" Style="{StaticResource SectionTitle}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                            <Button Content="USB exfiltration" Style="{StaticResource PrimaryButton}" Padding="12,8"
+                                                    Command="{Binding SelectScenarioCommand}" CommandParameter="usb-exfil" Margin="0,0,8,0"/>
+                                            <Button Content="Insider harvest" Style="{StaticResource GhostButton}" Padding="12,8"
+                                                    Command="{Binding SelectScenarioCommand}" CommandParameter="insider"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding ScenarioTitle}" FontSize="16" FontWeight="SemiBold" Margin="0,16,0,0"/>
+                                        <TextBlock Text="{Binding ScenarioNarrative}" TextWrapping="Wrap" FontSize="13"
+                                                   Foreground="{StaticResource TextMuted}" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Style="{StaticResource GlassCard}" Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="2. How MayaJaal protects" Style="{StaticResource SectionTitle}"/>
+                                        <TextBlock Text="{Binding DefenseNarrative}" TextWrapping="Wrap" FontSize="13"
+                                                   Foreground="{StaticResource TextMuted}" Margin="0,8,0,16"/>
+                                        <Button Content="Run attack simulation" Style="{StaticResource DangerButton}"
+                                                Command="{Binding RunAttackSimulationCommand}"
+                                                IsEnabled="{Binding IsSimulationRunning, Converter={StaticResource NotBool}}"
+                                                HorizontalAlignment="Left" Padding="16,10"/>
+                                        <TextBlock Text="Tip: after running, open Dashboard and Incidents to show live risk, events, and lockdown."
+                                                   TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="0,12,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <Border Style="{StaticResource GlassCard}" Padding="18" Margin="0,0,0,16">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                                        <TextBlock Text="3. Attack vs defense timeline" Style="{StaticResource SectionTitle}"/>
+                                        <TextBlock Text="{Binding SimulationStatus}" FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding AttackSteps}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource GlassCard}" Padding="14,12" Margin="0,0,0,10">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="36"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource BgMuted}"
+                                                                VerticalAlignment="Top">
+                                                            <TextBlock Text="{Binding Number}" FontWeight="SemiBold" FontSize="12"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="1" Margin="10,0,12,0">
+                                                            <TextBlock Text="Attacker" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                                            <TextBlock Text="{Binding AttackAction}" FontSize="13" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                                                            <TextBlock Text="MayaJaal" FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                                                            <TextBlock Text="{Binding DefenseAction}" FontSize="13" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                        </StackPanel>
+                                                        <Border Grid.Column="3" Style="{StaticResource Badge}" VerticalAlignment="Top">
+                                                            <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Medium"
+                                                                       Foreground="{Binding StatusBrush, Converter={StaticResource ToBrush}}"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardGlow}" Padding="18"
+                                    Visibility="{Binding SimulationResult, Converter={StaticResource NonEmptyToVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="4. Result for faculty Q&amp;A" Style="{StaticResource SectionTitle}"/>
+                                    <TextBlock Text="{Binding SimulationResult}" TextWrapping="Wrap" FontSize="13"
+                                               Foreground="{StaticResource TextSecondary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                        <Button Content="Open Dashboard" Style="{StaticResource PrimaryButton}" Padding="12,8"
+                                                Command="{Binding NavigateCommand}" CommandParameter="Dashboard" Margin="0,0,8,0"/>
+                                        <Button Content="Open Incidents" Style="{StaticResource GhostButton}" Padding="12,8"
+                                                Command="{Binding NavigateCommand}" CommandParameter="Incidents"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- SETTINGS -->
+                    <DockPanel Visibility="{Binding IsSettingsVisible, Converter={StaticResource BoolToVis}}">
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                            <TextBlock Text="Settings" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="Runtime connection and console preferences." Style="{StaticResource PageDescription}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource GlassCard}" Padding="20" MaxWidth="640" HorizontalAlignment="Left">
+                            <StackPanel>
+                                <TextBlock Text="Connection" FontSize="13" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding SettingsSummary}" TextWrapping="Wrap"
+                                           Foreground="{StaticResource TextMuted}" FontSize="13" Margin="0,8,0,16"/>
+                                <Border Height="1" Background="{StaticResource BorderColor}" Margin="0,0,0,16"/>
+                                <TextBlock Text="Appearance" FontSize="13" FontWeight="SemiBold"/>
+                                <TextBlock Text="Theme follows shadcn/ui zinc (light). IPC framing is length-prefixed JSON over an ACL-hardened named pipe."
+                                           TextWrapping="Wrap" Foreground="{StaticResource TextMuted}" FontSize="13" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </DockPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

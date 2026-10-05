@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>MayaJaal.SecurityCenter</RootNamespace>
+    <AssemblyName>MayaJaal.SecurityCenter</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon />
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MayaJaal.Shared\MayaJaal.Shared.csproj" />
+    <ProjectReference Include="..\MayaJaal.Guardian\MayaJaal.Guardian.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- Keep Guardian.exe next to Security Center for single-window faculty demos -->
+  <Target Name="CopyGuardianOutput" AfterTargets="Build">
+    <PropertyGroup>
+      <_GuardianOut>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\MayaJaal.Guardian\bin\$(Configuration)\net8.0-windows'))</_GuardianOut>
+    </PropertyGroup>
+    <ItemGroup>
+      <_GuardianFiles Include="$(_GuardianOut)\**\*.*" Condition="Exists('$(_GuardianOut)\MayaJaal.Guardian.exe')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_GuardianFiles)"
+          DestinationFiles="@(_GuardianFiles->'$(OutDir)guardian\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_GuardianFiles)' != ''" />
+  </Target>
+</Project>

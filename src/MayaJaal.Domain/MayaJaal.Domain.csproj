@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>MayaJaal.Domain</RootNamespace>
+    <AssemblyName>MayaJaal.Domain</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MayaJaal.Shared\MayaJaal.Shared.csproj" />
+  </ItemGroup>
+</Project>

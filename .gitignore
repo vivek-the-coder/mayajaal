@@ -1,0 +1,40 @@
+# Build
+**/bin/
+**/obj/
+**/out/
+*.user
+*.suo
+.vs/
+*.DotSettings.user
+
+# Logs / runtime data
+*.log
+C:/ProgramData/MayaJaal/
+
+# Secrets / local
+.env
+.env.*
+*.pfx
+*.key
+*.dpapi
+
+# Local verify artifacts
+scripts/verify-shots/
+**/VerifyLive/bin/
+**/VerifyLive/obj/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# OS / editor
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# GitHub Actions (push separately if token has workflow scope)
+.github/workflows/
